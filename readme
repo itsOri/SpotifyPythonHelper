@@ -1,0 +1,6 @@
+Hello!
+this script should help u manage spotify playlists with python3.
+the script requires setting a new account here for getting id and secret - https://developer.spotify.com/documentation/general/guides/authorization/app-settings/
+you should also add your user in there and allow redirect to google (put the same url as in the script).
+if u want to change the script u may find this  useful  - https://github.com/plamere/spotipy
+theres alot of examples
