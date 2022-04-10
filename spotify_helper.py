@@ -2,8 +2,8 @@ import os
 import spotipy
 import time
 from spotipy.oauth2 import SpotifyOAuth
-os.environ['SPOTIPY_CLIENT_ID'] = #get yours at https://developer.spotify.com/documentation/general/guides/authorization/app-settings/
-os.environ['SPOTIPY_CLIENT_SECRET'] = #get yours at https://developer.spotify.com/documentation/general/guides/authorization/app-settings/
+os.environ['SPOTIPY_CLIENT_ID'] = '83ee334a37b24eb586bfd432c3579123'#get yours at https://developer.spotify.com/documentation/general/guides/authorization/app-settings/
+os.environ['SPOTIPY_CLIENT_SECRET'] = '7b2107f6952f4d9ea131de9d173045ec' #get yours at https://developer.spotify.com/documentation/general/guides/authorization/app-settings/
 os.environ['SPOTIPY_REDIRECT_URI'] = 'https://www.google.com/'
 
 def change_scope(scope):
@@ -71,6 +71,11 @@ def get_tracks_by_playlist(sp, playlist_id,order_details=False):
 		return tracks_ids, tracks_names
 
 def add_tracks_to_playlist(sp, playlist_id, fav_tracks_ids):
+	while len(fav_tracks_ids) > 50:
+		cur_fav_tracks_ids = fav_tracks_ids[:50]
+		sp.playlist_add_items(playlist_id,items=cur_fav_tracks_ids)
+		fav_tracks_ids = fav_tracks_ids[50:]
+		print(fav_tracks_ids)
 	sp.playlist_add_items(playlist_id,items=fav_tracks_ids)
 	remove_duplicates(sp, playlist_id)
 
@@ -84,13 +89,16 @@ def remove_duplicates(sp, playlist_id):
 	for track_id in tracks_ids:
 		if (tracks_ids.count(track_id) > 1) and (to_remove_ids.count(track_id) == 0):
 			to_remove_ids.append(track_id)
-
 	print('removing duplicates!')
 	scope = 'playlist-modify-public'
 	sp = change_scope(scope)
 	if len(to_remove_ids) > 0:
-		sp.playlist_remove_all_occurrences_of_items(playlist_id, to_remove_ids)
-		sp.playlist_add_items(playlist_id, to_remove_ids)
+		print(to_remove_ids)
+		try:
+			sp.playlist_remove_all_occurrences_of_items(playlist_id, to_remove_ids)
+			sp.playlist_add_items(playlist_id, to_remove_ids)
+		except:
+			print('error - too many dups, bye')
 	return sp
 
 def main():
@@ -109,13 +117,13 @@ def main():
 		from_order = input(question)
 	if (from_order == 'copy'):
 		#get playlist tracks
-		playlist_id = get_playlist_id()
-		input('enter playlist id to copy tracks from (url) \n')
+		playlist_id = input('enter playlist id to copy tracks from (url) \n')
 		fav_tracks_ids, fav_tracks = get_tracks_by_playlist(sp, playlist_id)
 	elif (from_order == 'like'):
 		#get liked songs ids and names
 		fav_tracks_ids, fav_tracks = get_liked_tracks(sp)
 	elif (from_order == 'remove'):
+		print('hi!')
 		playlist_id = input('enter playlist for duplicates remove (url) \n')
 		sp = remove_duplicates(sp, playlist_id)
 		print('success')
@@ -129,7 +137,7 @@ def main():
 	sp = change_scope(scope)
 
 	dest_order = input("What's your destination? N - New Playlist, E - Existing playlist ")
-	while from_order not in ['N', 'E']:
+	while dest_order not in ['N', 'E']:
 		print('Wrong input. try again....')
 		dest_order = input("What's your destination? N - New Playlist, E - Existing playlist ")
 	if dest_order == 'N':
